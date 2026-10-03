@@ -9,3 +9,8 @@ The versionName value is a string that everyone sees. That should be the public 
 
 ## Building and running the app
 To run the app for testing, load the project folder in the Android IDE and click the 'Run app' button.
+
+
+## Generating a signed APK for release
+Go to the following URL for instructions:
+https://developer.android.com/studio/publish/app-signing#sign-apk

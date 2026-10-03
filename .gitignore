@@ -14,8 +14,12 @@
 .cxx
 local.properties
 
-# Claude Code files.
+# Claude Code files
 CLAUDE.md
 CLAUDE.local.md
 .claude/
 .mcp.json
+
+# Signing keystores must never be committed
+*.jks
+*.keystore
