@@ -33,7 +33,25 @@ class MainActivity : ComponentActivity() {
 								IconButton(onClick = { }){
 									Icon(
 										painter = painterResource(R.drawable.ic_qr_code),
-										contentDescription = "QR button."
+										contentDescription = "Card"
+									)
+								}
+								IconButton(onClick = { }){
+									Icon(
+										painter = painterResource(R.drawable.ic_scan_line),
+										contentDescription = "Scan"
+									)
+								}
+								IconButton(onClick = { }){
+									Icon(
+										painter = painterResource(R.drawable.ic_bookmark),
+										contentDescription = "Saved"
+									)
+								}
+								IconButton(onClick = { }){
+									Icon(
+										painter = painterResource(R.drawable.ic_more_horiz),
+										contentDescription = "More"
 									)
 								}
 							},
