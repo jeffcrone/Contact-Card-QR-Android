@@ -12,25 +12,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-	primary = Purple80,
-	secondary = PurpleGrey80,
-	tertiary = Pink80
+	primary = snow_accent,
+	onPrimary = snow_onAccent,
+	secondary = snow_text,
+	onSecondary = snow_bg,
+	tertiary = snow_muted,
+	onTertiary = snow_onTertiary,
+	background = snow_bg,
+	onBackground = snow_text,
+	surface = snow_card,
+	onSurface = snow_text
 )
 
 private val LightColorScheme = lightColorScheme(
-	primary = Purple40,
-	secondary = PurpleGrey40,
-	tertiary = Pink40
-
-	/* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+	primary = carbon_accent,
+	onPrimary = carbon_onAccent,
+	secondary = carbon_text,
+	onSecondary = carbon_bg,
+	tertiary = carbon_muted,
+	onTertiary = carbon_bg,
+	background = carbon_bg,
+	onBackground = carbon_text,
+	surface = carbon_card,
+	onSurface = carbon_text
 )
 
 @Composable
