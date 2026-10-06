@@ -12,19 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-	primary = snow_accent,
-	onPrimary = snow_onAccent,
-	secondary = snow_text,
-	onSecondary = snow_bg,
-	tertiary = snow_muted,
-	onTertiary = snow_onTertiary,
-	background = snow_bg,
-	onBackground = snow_text,
-	surface = snow_card,
-	onSurface = snow_text
-)
-
-private val LightColorScheme = lightColorScheme(
 	primary = carbon_accent,
 	onPrimary = carbon_onAccent,
 	secondary = carbon_text,
@@ -35,6 +22,19 @@ private val LightColorScheme = lightColorScheme(
 	onBackground = carbon_text,
 	surface = carbon_card,
 	onSurface = carbon_text
+)
+
+private val LightColorScheme = lightColorScheme(
+	primary = snow_accent,
+	onPrimary = snow_onAccent,
+	secondary = snow_text,
+	onSecondary = snow_bg,
+	tertiary = snow_muted,
+	onTertiary = snow_onTertiary,
+	background = snow_bg,
+	onBackground = snow_text,
+	surface = snow_card,
+	onSurface = snow_text
 )
 
 @Composable
