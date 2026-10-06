@@ -1,0 +1,146 @@
+# Creates a tag (vX.Y.Z) and a GitHub release whenever versionName in
+# app/build.gradle.kts changes on main. Bumping versionName is the whole
+# release ceremony; no tag needs to exist beforehand.
+#
+# This workflow deliberately does NOT build the app or attach an APK to the
+# release. It only records the version as a tag and a release with
+# auto-generated notes.
+#
+# Note: YAML forbids tab characters for indentation, so this file uses spaces.
+
+name: Release
+
+on:
+  push:
+    branches: [main]
+    # Cheap first filter: only pushes that touch the file holding versionName
+    # can possibly change the version. Every other push to main never even
+    # starts a run. The "detect" step below still compares the actual value,
+    # because editing build.gradle.kts doesn't necessarily mean the version
+    # changed.
+    paths:
+      - app/build.gradle.kts
+  workflow_dispatch:
+
+# Pushing the tag and creating the release both need write access to the
+# repository contents.
+permissions:
+  contents: write
+
+# Two pushes in quick succession must not race each other into creating the
+# same tag and release. Queue them instead, and never cancel a release that is
+# already under way.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          # Full history, so the commit from before this push is available to
+          # read the old versionName from, even if the push contained several
+          # commits.
+          fetch-depth: 0
+
+      - name: Read version
+        id: version
+        run: |
+          # versionName in app/build.gradle.kts is the single source of truth
+          # for the app's version, e.g.  versionName = "0.1.0"
+          version=$(sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' app/build.gradle.kts | head -n 1)
+          if [ -z "$version" ]; then
+            echo "::error file=app/build.gradle.kts::Could not find versionName in app/build.gradle.kts"
+            exit 1
+          fi
+          echo "Version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether to release
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Releases only ever come from main. workflow_dispatch can be
+          # started from any branch in the Actions tab, so guard against
+          # accidentally releasing an unmerged branch.
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Releases can only be made from main (this run is on $GITHUB_REF)."
+            exit 1
+          fi
+
+          # A manual run always goes ahead. The steps below are idempotent, so
+          # this is also how to finish a release that failed partway through.
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "Manual run: releasing v$VERSION if it isn't already released."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # github.event.before is all zeros when the branch was just created,
+          # and the commit can be missing from history after a force push. In
+          # either case we can't tell what the old version was, so go ahead:
+          # the idempotent steps below do nothing if v$VERSION already exists.
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "Previous commit unknown; releasing v$VERSION if it isn't already released."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The file may not have existed in the previous commit; treat that
+          # as an empty old version so the comparison below sees a change.
+          old=$(git show "$BEFORE:app/build.gradle.kts" 2>/dev/null \
+            | sed -nE 's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' | head -n 1)
+
+          if [ "$old" = "$VERSION" ]; then
+            echo "versionName is still $VERSION; nothing to release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "versionName changed from '${old}' to '$VERSION'."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create tag
+        if: steps.detect.outputs.release == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          # Check the remote rather than local tags: the remote is what
+          # matters, and it is what a re-run of a half-finished release will
+          # find. An existing tag is left where it is, never moved, so
+          # re-running can't rewrite a published release's history.
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists; leaving it as it is."
+          else
+            # A lightweight tag, so the runner doesn't need a git user
+            # identity configured. actions/checkout already set up the
+            # credentials needed to push it.
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+            echo "Created tag $TAG at $GITHUB_SHA."
+          fi
+
+      - name: Create GitHub release
+        if: steps.detect.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; nothing to do."
+          else
+            # --verify-tag makes gh fail rather than silently create a tag of
+            # its own, so the tag is always the one made in the step above.
+            gh release create "$TAG" \
+              --verify-tag \
+              --title "$TAG" \
+              --generate-notes
+            echo "Created release $TAG."
+          fi
