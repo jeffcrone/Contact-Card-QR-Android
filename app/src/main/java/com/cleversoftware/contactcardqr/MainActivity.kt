@@ -28,6 +28,8 @@ import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
 import com.cleversoftware.contactcardqr.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.asImageBitmap
@@ -69,20 +71,21 @@ class MainActivity : ComponentActivity() {
 										contentDescription = "More"
 									)
 								}
-							},
-							floatingActionButton = {
-								FloatingActionButton(
-									onClick = { },
-									containerColor = BottomAppBarDefaults.bottomAppBarFabColor
-								) {
-									Icon(
-										painter = painterResource(R.drawable.ic_plus),
-										contentDescription = "Add"
-									)
-								}
 							}
 						)
-					}
+					},
+					floatingActionButton = {
+						FloatingActionButton(
+							onClick = { },
+							containerColor = BottomAppBarDefaults.bottomAppBarFabColor
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_plus),
+								contentDescription = "Add"
+							)
+						}
+					},
+					floatingActionButtonPosition = FabPosition.End
 				) { innerPadding ->
 					MainCard(padding = innerPadding)
 				}
