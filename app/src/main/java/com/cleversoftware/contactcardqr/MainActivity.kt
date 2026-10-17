@@ -30,7 +30,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
@@ -43,36 +48,55 @@ class MainActivity : ComponentActivity() {
 		enableEdgeToEdge()
 		setContent {
 			ContactCardQRTheme {
+				var selectedIndex by remember { mutableIntStateOf(0) }
 				Scaffold(
 					bottomBar = {
-						BottomAppBar(
-							actions = {
-								IconButton(onClick = { }){
+						NavigationBar {
+							NavigationBarItem(
+								selected = selectedIndex == 0,
+								onClick = { selectedIndex = 0 },
+								icon = {
 									Icon(
 										painter = painterResource(R.drawable.ic_qr_code),
 										contentDescription = "Card"
 									)
-								}
-								IconButton(onClick = { }){
+								},
+								label = { Text("Card") }
+							)
+							NavigationBarItem(
+								selected = selectedIndex == 1,
+								onClick = { selectedIndex = 1 },
+								icon = {
 									Icon(
 										painter = painterResource(R.drawable.ic_scan_line),
 										contentDescription = "Scan"
 									)
-								}
-								IconButton(onClick = { }){
+								},
+								label = { Text("Scan") }
+							)
+							NavigationBarItem(
+								selected = selectedIndex == 2,
+								onClick = { selectedIndex = 2 },
+								icon = {
 									Icon(
 										painter = painterResource(R.drawable.ic_bookmark),
 										contentDescription = "Saved"
 									)
-								}
-								IconButton(onClick = { }){
+								},
+								label = { Text("Saved") }
+							)
+							NavigationBarItem(
+								selected = selectedIndex == 3,
+								onClick = { selectedIndex = 3 },
+								icon = {
 									Icon(
 										painter = painterResource(R.drawable.ic_more_horiz),
 										contentDescription = "More"
 									)
-								}
-							}
-						)
+								},
+								label = { Text("Saved") }
+							)
+						}
 					},
 					floatingActionButton = {
 						FloatingActionButton(
