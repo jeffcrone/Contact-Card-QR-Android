@@ -17,6 +17,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
+import android.content.res.Configuration
 
 @Composable
 fun SettingsScreen(padding: PaddingValues) {
@@ -95,5 +98,13 @@ fun SettingsScreen(padding: PaddingValues) {
 			HorizontalDivider()
 		}
 	}
+}
 
+@Preview(showBackground = true, name = "Light Mode")
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark Mode")
+@Composable
+fun SettingsScreenPreview() {
+	ContactCardQRTheme {
+		SettingsScreen(padding = PaddingValues(0.dp))
+	}
 }

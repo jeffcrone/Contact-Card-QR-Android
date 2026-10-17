@@ -1,5 +1,6 @@
 package com.cleversoftware.contactcardqr
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -48,79 +49,84 @@ class MainActivity : ComponentActivity() {
 		super.onCreate(savedInstanceState)
 		enableEdgeToEdge()
 		setContent {
-			ContactCardQRTheme {
-				var selectedIndex by remember { mutableIntStateOf(0) }
-				Scaffold(
-					bottomBar = {
-						NavigationBar {
-							NavigationBarItem(
-								selected = selectedIndex == 0,
-								onClick = { selectedIndex = 0 },
-								icon = {
-									Icon(
-										painter = painterResource(R.drawable.ic_qr_code),
-										contentDescription = "Card"
-									)
-								},
-								label = { Text("Card") }
-							)
-							NavigationBarItem(
-								selected = selectedIndex == 1,
-								onClick = { selectedIndex = 1 },
-								icon = {
-									Icon(
-										painter = painterResource(R.drawable.ic_scan_line),
-										contentDescription = "Scan"
-									)
-								},
-								label = { Text("Scan") }
-							)
-							NavigationBarItem(
-								selected = selectedIndex == 2,
-								onClick = { selectedIndex = 2 },
-								icon = {
-									Icon(
-										painter = painterResource(R.drawable.ic_bookmark),
-										contentDescription = "Saved"
-									)
-								},
-								label = { Text("Saved") }
-							)
-							NavigationBarItem(
-								selected = selectedIndex == 3,
-								onClick = { selectedIndex = 3 },
-								icon = {
-									Icon(
-										painter = painterResource(R.drawable.ic_more_horiz),
-										contentDescription = "Settings"
-									)
-								},
-								label = { Text("Settings") }
-							)
-						}
-					},
-					floatingActionButton = {
-						FloatingActionButton(
-							onClick = { },
-							containerColor = BottomAppBarDefaults.bottomAppBarFabColor
-						) {
-							Icon(
-								painter = painterResource(R.drawable.ic_plus),
-								contentDescription = "Add"
-							)
-						}
-					},
-					floatingActionButtonPosition = FabPosition.End
-				) { innerPadding ->
-					when (selectedIndex) {
-						0 -> MainCard(padding = innerPadding)
-						1 -> Text("Scan Screen", modifier = Modifier.padding(innerPadding))
-						2 -> Text("Saved Screen", modifier = Modifier.padding(innerPadding))
-						3 -> SettingsScreen(padding = innerPadding)
-					}
+			MainAppContent()
+		}
+	}
+}
 
+@Composable
+fun MainAppContent() {
+	ContactCardQRTheme {
+		var selectedIndex by remember { mutableIntStateOf(0) }
+		Scaffold(
+			bottomBar = {
+				NavigationBar {
+					NavigationBarItem(
+						selected = selectedIndex == 0,
+						onClick = { selectedIndex = 0 },
+						icon = {
+							Icon(
+								painter = painterResource(R.drawable.ic_qr_code),
+								contentDescription = "Card"
+							)
+						},
+						label = { Text("Card") }
+					)
+					NavigationBarItem(
+						selected = selectedIndex == 1,
+						onClick = { selectedIndex = 1 },
+						icon = {
+							Icon(
+								painter = painterResource(R.drawable.ic_scan_line),
+								contentDescription = "Scan"
+							)
+						},
+						label = { Text("Scan") }
+					)
+					NavigationBarItem(
+						selected = selectedIndex == 2,
+						onClick = { selectedIndex = 2 },
+						icon = {
+							Icon(
+								painter = painterResource(R.drawable.ic_bookmark),
+								contentDescription = "Saved"
+							)
+						},
+						label = { Text("Saved") }
+					)
+					NavigationBarItem(
+						selected = selectedIndex == 3,
+						onClick = { selectedIndex = 3 },
+						icon = {
+							Icon(
+								painter = painterResource(R.drawable.ic_more_horiz),
+								contentDescription = "Settings"
+							)
+						},
+						label = { Text("Settings") }
+					)
 				}
+			},
+			floatingActionButton = {
+				FloatingActionButton(
+					onClick = { },
+					containerColor = BottomAppBarDefaults.bottomAppBarFabColor
+				) {
+					Icon(
+						painter = painterResource(R.drawable.ic_plus),
+						contentDescription = "Add"
+					)
+				}
+			},
+			floatingActionButtonPosition = FabPosition.End
+		) { innerPadding ->
+			when (selectedIndex) {
+				0 -> MainCard(padding = innerPadding)
+				1 -> Text("Scan Screen", modifier = Modifier.padding(innerPadding))
+				2 -> Text("Saved Screen", modifier = Modifier.padding(innerPadding))
+				3 -> SettingsScreen(padding = innerPadding)
 			}
+
 		}
 	}
 }
@@ -160,4 +166,20 @@ fun MainCard(padding: PaddingValues) {
 			}
 		}
 	}
+}
+
+// Previews
+@Preview(showBackground = true, name = "Main Card Light")
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Main Card Dark")
+@Composable
+fun MainCardPreview() {
+	ContactCardQRTheme {
+		MainCard(padding = PaddingValues(16.dp))
+	}
+}
+
+@Preview(showSystemUi = true, name = "Full App Layout")
+@Composable
+fun MainScreenPreview() {
+	MainAppContent()
 }
