@@ -91,10 +91,10 @@ class MainActivity : ComponentActivity() {
 								icon = {
 									Icon(
 										painter = painterResource(R.drawable.ic_more_horiz),
-										contentDescription = "More"
+										contentDescription = "Settings"
 									)
 								},
-								label = { Text("Saved") }
+								label = { Text("Settings") }
 							)
 						}
 					},
