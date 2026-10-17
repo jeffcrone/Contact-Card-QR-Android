@@ -14,9 +14,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun SettingsScreen(padding: PaddingValues) {
+	val context = LocalContext.current
+	val versionName = remember(context) {
+		try {
+			val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+			packageInfo.versionName ?: "0.1.0"
+		} catch (e: Exception) {
+			"0.1.0"
+		}
+	}
+
 	LazyColumn(
 		modifier = Modifier
 			.fillMaxSize()
@@ -67,7 +79,7 @@ fun SettingsScreen(padding: PaddingValues) {
 		item {
 			ListItem(
 				headlineContent = { Text("About App") },
-				supportingContent = { Text("Version 0.1.0") },
+				supportingContent = { Text("Version $versionName") },
 				leadingContent = {
 					Icon(
 						painter = painterResource(R.drawable.ic_more_horiz),
