@@ -1,5 +1,6 @@
 package com.cleversoftware.contactcardqr
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,9 +24,10 @@ fun SettingsScreen(padding: PaddingValues) {
 	val versionName = remember(context) {
 		try {
 			val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-			packageInfo.versionName ?: "0.1.0"
+			packageInfo.versionName ?: "1.0.0"
 		} catch (e: Exception) {
-			"0.1.0"
+			Log.e("SettingsScreen", "Failed to get version name", e)
+			"1.0.0"
 		}
 	}
 

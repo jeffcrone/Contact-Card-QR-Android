@@ -1,6 +1,7 @@
 package com.cleversoftware.contactcardqr
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -149,7 +150,7 @@ fun MainCard(padding: PaddingValues) {
 			val barcodeEncoder = BarcodeEncoder()
 			barcodeEncoder.encodeBitmap(qrContent, BarcodeFormat.QR_CODE, 500, 500)
 		} catch( e: Exception) {
-			e.printStackTrace()
+			Log.e("MainActivity", "Failed to get QR code", e)
 			null
 		}
 	}
