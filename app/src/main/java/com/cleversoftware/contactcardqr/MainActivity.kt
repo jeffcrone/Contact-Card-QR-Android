@@ -111,7 +111,13 @@ class MainActivity : ComponentActivity() {
 					},
 					floatingActionButtonPosition = FabPosition.End
 				) { innerPadding ->
-					MainCard(padding = innerPadding)
+					when (selectedIndex) {
+						0 -> MainCard(padding = innerPadding)
+						1 -> Text("Scan Screen", modifier = Modifier.padding(innerPadding))
+						2 -> Text("Saved Screen", modifier = Modifier.padding(innerPadding))
+						3 -> SettingsScreen(padding = innerPadding)
+					}
+
 				}
 			}
 		}
