@@ -126,22 +126,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-	Text(
-		text = "Hello $name!",
-		modifier = modifier
-	)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-	ContactCardQRTheme {
-		Greeting("Android")
-	}
-}
-
-@Composable
 fun MainCard(padding: PaddingValues) {
 	// Generate the QR Code bitmap
 	val qrContent = "This is a test"
