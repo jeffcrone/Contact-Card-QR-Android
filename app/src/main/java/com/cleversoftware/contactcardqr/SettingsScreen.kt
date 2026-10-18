@@ -53,7 +53,7 @@ fun SettingsScreen(padding: PaddingValues) {
 				supportingContent = { Text("Edit your name, email, and contact details") },
 				leadingContent = {
 					Icon(
-						painter = painterResource(R.drawable.ic_plus),
+						painter = painterResource(R.drawable.ic_person),
 						contentDescription = "Profile"
 					)
 				},
