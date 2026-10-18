@@ -56,4 +56,7 @@ dependencies {
 
 	// QR Code dependency
 	implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+	// Navigation
+	implementation("androidx.navigation:navigation-compose:2.8.5")
 }

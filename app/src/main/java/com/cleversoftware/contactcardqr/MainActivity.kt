@@ -43,6 +43,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import org.w3c.dom.Text
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,13 +64,18 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainAppContent() {
 	ContactCardQRTheme {
-		var selectedIndex by remember { mutableIntStateOf(0) }
+		// Navigation Controller
+		val navController = rememberNavController()
+
+		// State for saving contact profile
+		var userProfile by remember { mutableStateOf(ContactProfile()) }
+
 		Scaffold(
 			bottomBar = {
 				NavigationBar {
 					NavigationBarItem(
-						selected = selectedIndex == 0,
-						onClick = { selectedIndex = 0 },
+						selected = true,
+						onClick = { navController.navigate("card") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_qr_code),
@@ -73,8 +85,8 @@ fun MainAppContent() {
 						label = { Text("Card") }
 					)
 					NavigationBarItem(
-						selected = selectedIndex == 1,
-						onClick = { selectedIndex = 1 },
+						selected = false,
+						onClick = { navController.navigate("scan") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_scan_line),
@@ -84,8 +96,8 @@ fun MainAppContent() {
 						label = { Text("Scan") }
 					)
 					NavigationBarItem(
-						selected = selectedIndex == 2,
-						onClick = { selectedIndex = 2 },
+						selected = false,
+						onClick = { navController.navigate("saved") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_bookmark),
@@ -95,8 +107,8 @@ fun MainAppContent() {
 						label = { Text("Saved") }
 					)
 					NavigationBarItem(
-						selected = selectedIndex == 3,
-						onClick = { selectedIndex = 3 },
+						selected = false,
+						onClick = { navController.navigate("settings") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_more_horiz),
@@ -120,25 +132,62 @@ fun MainAppContent() {
 			},
 			floatingActionButtonPosition = FabPosition.End
 		) { innerPadding ->
-			when (selectedIndex) {
-				0 -> MainCard(padding = innerPadding)
-				1 -> Text("Scan Screen", modifier = Modifier.padding(innerPadding))
-				2 -> Text("Saved Screen", modifier = Modifier.padding(innerPadding))
-				3 -> SettingsScreen(padding = innerPadding)
-			}
+			// Handle the navigation between screens.
+			NavHost(
+				navController = navController,
+				startDestination = "card"
+			) {
+				composable("card") {
+					MainCard(padding = innerPadding, newQRContent = userProfile.toVCardString())
+				}
 
+				composable("scan") {
+					Text(
+						"Scan Screen",
+						modifier = Modifier.padding(innerPadding)
+					)
+				}
+
+				composable("saved") {
+					Text(
+						"Saved Screen",
+						modifier = Modifier.padding(innerPadding)
+					)
+				}
+
+				composable("settings") {
+					// Passing padding and navigation callback here:
+					SettingsScreen(
+						padding = innerPadding,
+						onNavigateToProfile = {
+							navController.navigate("profile") // Triggers navigation to profile.
+						}
+					)
+				}
+
+				composable("profile") {
+					// Passing padding, data, and back-navigation callback here:
+					ProfileScreen(
+						padding = innerPadding,
+						initialProfile = userProfile,
+						onSaveProfile = { updatedProfile ->
+							userProfile = updatedProfile
+							navController.popBackStack() // Pops profile off back stack, aka returns to Settings.
+						}
+					)
+				}
+			}
 		}
 	}
 }
 
 @Composable
-fun MainCard(padding: PaddingValues) {
+fun MainCard(padding: PaddingValues, newQRContent: String) {
 	// Generate the QR Code bitmap
-	val qrContent = "This is a test"
-	val qrBitmap = remember(qrContent) {
+	val qrBitmap = remember(newQRContent) {
 		try {
 			val barcodeEncoder = BarcodeEncoder()
-			barcodeEncoder.encodeBitmap(qrContent, BarcodeFormat.QR_CODE, 500, 500)
+			barcodeEncoder.encodeBitmap(newQRContent, BarcodeFormat.QR_CODE, 500, 500)
 		} catch( e: Exception) {
 			Log.e("MainActivity", "Failed to get QR code", e)
 			null
@@ -174,7 +223,7 @@ fun MainCard(padding: PaddingValues) {
 @Composable
 fun MainCardPreview() {
 	ContactCardQRTheme {
-		MainCard(padding = PaddingValues(16.dp))
+		MainCard(padding = PaddingValues(16.dp), "This is a test")
 	}
 }
 

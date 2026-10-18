@@ -20,9 +20,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
 import android.content.res.Configuration
+import androidx.compose.runtime.mutableStateOf
 
 @Composable
-fun SettingsScreen(padding: PaddingValues) {
+fun SettingsScreen(padding: PaddingValues, onNavigateToProfile: () -> Unit = {}) {
 	val context = LocalContext.current
 	val versionName = remember(context) {
 		try {
@@ -58,7 +59,7 @@ fun SettingsScreen(padding: PaddingValues) {
 					)
 				},
 				modifier = Modifier.clickable {
-					// Handle click
+					onNavigateToProfile()
 				}
 			)
 			HorizontalDivider()
