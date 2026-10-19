@@ -60,6 +60,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.CircularProgressIndicator
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -239,18 +241,28 @@ fun MainCard(padding: PaddingValues, newQRContent: String) {
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(padding)
+			.padding(16.dp)
 	) {
 		Column(modifier = Modifier.padding(16.dp)) {
 			Text(text = "Card Title")
 			Text(text = "Scan the QR code below.", modifier = Modifier.padding(top = 4.dp))
 
-			// Show the QR Code
-			qrBitmap?.let { bitmap ->
-				Image(
-					bitmap = bitmap.asImageBitmap(),
-					contentDescription = "Contact Card QR Code",
-					modifier = Modifier.size(200.dp)
-				)
+			// Box reserves a fixed 200.dp x 200.dp space
+			Box(
+				modifier = Modifier.size(200.dp),
+				contentAlignment = Alignment.Center
+			) {
+				if (qrBitmap != null) {
+					// Show the QR Code
+					Image(
+						bitmap = qrBitmap!!.asImageBitmap(),
+						contentDescription = "Contact Card QR Code",
+						modifier = Modifier.fillMaxSize()
+					)
+				} else {
+					// Shows progress indicator while bitmap is null
+					CircularProgressIndicator()
+				}
 			}
 		}
 	}
