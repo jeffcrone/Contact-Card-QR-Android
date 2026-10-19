@@ -50,6 +50,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.w3c.dom.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,11 +68,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainAppContent() {
 	ContactCardQRTheme {
+		// ProfileRepository setup
+		val context = LocalContext.current
+		val repository = remember { ProfileRepository(context) }
+		val coroutineScope = rememberCoroutineScope()
+
 		// Navigation Controller
 		val navController = rememberNavController()
 
-		// State for saving contact profile
-		var userProfile by remember { mutableStateOf(ContactProfile()) }
+		// Observe saved profile state automatically from DataStore
+		val userProfile by repository.profileFlow.collectAsState(initial = ContactProfile())
 
 		Scaffold(
 			bottomBar = {
@@ -171,8 +180,13 @@ fun MainAppContent() {
 						padding = innerPadding,
 						initialProfile = userProfile,
 						onSaveProfile = { updatedProfile ->
-							userProfile = updatedProfile
-							navController.popBackStack() // Pops profile off back stack, aka returns to Settings.
+							// Save profile to disk asynchronously
+							coroutineScope.launch {
+								repository.saveProfile(updatedProfile)
+							}
+
+							// Pops profile off back stack, aka returns to Settings.
+							navController.popBackStack()
 						}
 					)
 				}
