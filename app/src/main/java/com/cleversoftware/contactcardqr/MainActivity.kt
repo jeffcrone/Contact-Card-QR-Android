@@ -1,6 +1,7 @@
 package com.cleversoftware.contactcardqr
 
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -51,9 +52,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.w3c.dom.Text
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,12 +85,29 @@ fun MainAppContent() {
 		// Observe saved profile state automatically from DataStore
 		val userProfile by repository.profileFlow.collectAsState(initial = ContactProfile())
 
+		// Track current active navigation route
+		val navBackStackEntry by navController.currentBackStackEntryAsState()
+		val currentRoute = navBackStackEntry?.destination?.route
+
+
+		// Helper to navigate safely without exploding the backstack
+		fun navigateToTab(route: String) {
+			navController.navigate(route) {
+				popUpTo(navController.graph.findStartDestination().id) {
+					saveState = true
+				}
+				launchSingleTop = true
+				restoreState = true
+			}
+		}
+
+
 		Scaffold(
 			bottomBar = {
 				NavigationBar {
 					NavigationBarItem(
-						selected = true,
-						onClick = { navController.navigate("card") },
+						selected = currentRoute == "card",
+						onClick = { navigateToTab("card") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_qr_code),
@@ -94,8 +117,8 @@ fun MainAppContent() {
 						label = { Text("Card") }
 					)
 					NavigationBarItem(
-						selected = false,
-						onClick = { navController.navigate("scan") },
+						selected = currentRoute == "scan",
+						onClick = { navigateToTab("scan") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_scan_line),
@@ -105,8 +128,8 @@ fun MainAppContent() {
 						label = { Text("Scan") }
 					)
 					NavigationBarItem(
-						selected = false,
-						onClick = { navController.navigate("saved") },
+						selected = currentRoute == "saved",
+						onClick = { navigateToTab("saved") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_bookmark),
@@ -116,8 +139,8 @@ fun MainAppContent() {
 						label = { Text("Saved") }
 					)
 					NavigationBarItem(
-						selected = false,
-						onClick = { navController.navigate("settings") },
+						selected = currentRoute == "settings" || currentRoute == "profile",
+						onClick = { navigateToTab("settings") },
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_more_horiz),
@@ -198,13 +221,15 @@ fun MainAppContent() {
 @Composable
 fun MainCard(padding: PaddingValues, newQRContent: String) {
 	// Generate the QR Code bitmap
-	val qrBitmap = remember(newQRContent) {
-		try {
-			val barcodeEncoder = BarcodeEncoder()
-			barcodeEncoder.encodeBitmap(newQRContent, BarcodeFormat.QR_CODE, 500, 500)
-		} catch( e: Exception) {
-			Log.e("MainActivity", "Failed to get QR code", e)
-			null
+	val qrBitmap by produceState<Bitmap?>(initialValue = null, key1 = newQRContent) {
+		value = withContext(Dispatchers.IO) {
+			try {
+				val barcodeEncoder = BarcodeEncoder()
+				barcodeEncoder.encodeBitmap(newQRContent, BarcodeFormat.QR_CODE, 500, 500)
+			} catch (e: Exception) {
+				Log.e("MainActivity", "Failed to get QR code", e)
+				null
+			}
 		}
 	}
 
