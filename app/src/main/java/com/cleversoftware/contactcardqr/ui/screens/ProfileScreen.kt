@@ -1,4 +1,4 @@
-package com.cleversoftware.contactcardqr
+package com.cleversoftware.contactcardqr.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.cleversoftware.contactcardqr.data.ContactProfile
 
 @Composable
 fun ProfileScreen(

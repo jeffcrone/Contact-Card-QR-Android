@@ -1,4 +1,4 @@
-package com.cleversoftware.contactcardqr
+package com.cleversoftware.contactcardqr.data
 
 data class ContactProfile(
 	val firstName: String = "",

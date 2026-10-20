@@ -1,4 +1,4 @@
-package com.cleversoftware.contactcardqr
+package com.cleversoftware.contactcardqr.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
