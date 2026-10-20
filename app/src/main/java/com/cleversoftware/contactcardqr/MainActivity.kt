@@ -56,6 +56,15 @@ import com.cleversoftware.contactcardqr.data.ProfileRepository
 import com.cleversoftware.contactcardqr.ui.screens.ProfileScreen
 import com.cleversoftware.contactcardqr.ui.screens.SettingsScreen
 import com.cleversoftware.contactcardqr.ui.screens.MainCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +76,7 @@ class MainActivity : ComponentActivity() {
 	}
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAppContent() {
 	ContactCardQRTheme {
@@ -84,6 +94,8 @@ fun MainAppContent() {
 		// Track current active navigation route
 		val navBackStackEntry by navController.currentBackStackEntryAsState()
 		val currentRoute = navBackStackEntry?.destination?.route
+
+		var showTypeSelector by remember { mutableStateOf(false) }
 
 
 		// Helper to navigate safely without exploding the backstack
@@ -149,17 +161,71 @@ fun MainAppContent() {
 			},
 			floatingActionButton = {
 				FloatingActionButton(
-					onClick = { },
+					onClick = { showTypeSelector = true },
 					containerColor = BottomAppBarDefaults.bottomAppBarFabColor
 				) {
 					Icon(
 						painter = painterResource(R.drawable.ic_plus),
-						contentDescription = "Add"
+						contentDescription = "Add QR Code"
 					)
 				}
 			},
 			floatingActionButtonPosition = FabPosition.End
 		) { innerPadding ->
+
+			// Shows sheet when showTypeSelector is true
+			if (showTypeSelector) {
+				ModalBottomSheet(onDismissRequest = { showTypeSelector = false }) {
+					Column(modifier = Modifier.padding(16.dp)) {
+						Text(
+							text = "Create New QR Code",
+							style = MaterialTheme.typography.titleLarge,
+							modifier = Modifier.padding(bottom = 16.dp)
+						)
+
+						ListItem(
+							headlineContent = { Text("Contact Card (vCard)") },
+							supportingContent = { Text("Share your name, phone, and email") },
+							leadingContent = { Icon(painterResource(R.drawable.ic_person), "Contact") },
+							modifier = Modifier.clickable {
+								showTypeSelector = false
+								navController.navigate("create_contact")
+							}
+						)
+
+						ListItem(
+							headlineContent = { Text("Wi-Fi Network") },
+							supportingContent = { Text("Allow guests to connect to Wi-Fi instantly") },
+							leadingContent = { Icon(painterResource(R.drawable.ic_wifi), "Wi-Fi") },
+							modifier = Modifier.clickable {
+								showTypeSelector = false
+								navController.navigate("create_wifi")
+							}
+						)
+
+						ListItem(
+							headlineContent = { Text("Website Link") },
+							supportingContent = { Text("Share a website or social media profile URL") },
+							leadingContent = { Icon(painterResource(R.drawable.ic_link), "URL") },
+							modifier = Modifier.clickable {
+								showTypeSelector = false
+								navController.navigate("create_url")
+							}
+						)
+
+						ListItem(
+							headlineContent = { Text("Calendar Event") },
+							supportingContent = { Text("Share event dates, times, and locations") },
+							leadingContent = { Icon(painterResource(R.drawable.ic_calendar), "Event") },
+							modifier = Modifier.clickable {
+								showTypeSelector = false
+								navController.navigate("create_event")
+							}
+						)
+					}
+				}
+			}
+
 			// Handle the navigation between screens.
 			NavHost(
 				navController = navController,
@@ -207,6 +273,34 @@ fun MainAppContent() {
 							// Pops profile off back stack, aka returns to Settings.
 							navController.popBackStack()
 						}
+					)
+				}
+
+				composable("create_contact") {
+					Text(
+						"Create Contact",
+						modifier = Modifier.padding(innerPadding)
+					)
+				}
+
+				composable("create_wifi") {
+					Text(
+						"Create WiFi",
+						modifier = Modifier.padding(innerPadding)
+					)
+				}
+
+				composable("create_url") {
+					Text(
+						"Create URL",
+						modifier = Modifier.padding(innerPadding)
+					)
+				}
+
+				composable("create_event") {
+					Text(
+						"Create Event",
+						modifier = Modifier.padding(innerPadding)
 					)
 				}
 			}
