@@ -55,6 +55,7 @@ import com.cleversoftware.contactcardqr.data.ContactProfile
 import com.cleversoftware.contactcardqr.data.ProfileRepository
 import com.cleversoftware.contactcardqr.ui.screens.ProfileScreen
 import com.cleversoftware.contactcardqr.ui.screens.SettingsScreen
+import com.cleversoftware.contactcardqr.ui.screens.MainCard
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -213,64 +214,7 @@ fun MainAppContent() {
 	}
 }
 
-@Composable
-fun MainCard(padding: PaddingValues, newQRContent: String) {
-	// Generate the QR Code bitmap
-	val qrBitmap by produceState<Bitmap?>(initialValue = null, key1 = newQRContent) {
-		value = withContext(Dispatchers.IO) {
-			try {
-				val barcodeEncoder = BarcodeEncoder()
-				barcodeEncoder.encodeBitmap(newQRContent, BarcodeFormat.QR_CODE, 500, 500)
-			} catch (e: Exception) {
-				Log.e("MainActivity", "Failed to get QR code", e)
-				null
-			}
-		}
-	}
-
-	Card(
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-		elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(padding)
-			.padding(16.dp)
-	) {
-		Column(modifier = Modifier.padding(16.dp)) {
-			Text(text = "Card Title")
-			Text(text = "Scan the QR code below.", modifier = Modifier.padding(top = 4.dp))
-
-			// Box reserves a fixed 200.dp x 200.dp space
-			Box(
-				modifier = Modifier.size(200.dp),
-				contentAlignment = Alignment.Center
-			) {
-				if (qrBitmap != null) {
-					// Show the QR Code
-					Image(
-						bitmap = qrBitmap!!.asImageBitmap(),
-						contentDescription = "Contact Card QR Code",
-						modifier = Modifier.fillMaxSize()
-					)
-				} else {
-					// Shows progress indicator while bitmap is null
-					CircularProgressIndicator()
-				}
-			}
-		}
-	}
-}
-
-// Previews
-@Preview(showBackground = true, name = "Main Card Light")
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Main Card Dark")
-@Composable
-fun MainCardPreview() {
-	ContactCardQRTheme {
-		MainCard(padding = PaddingValues(16.dp), "This is a test")
-	}
-}
-
+// Preview
 @Preview(showSystemUi = true, name = "Full App Layout")
 @Composable
 fun MainScreenPreview() {
