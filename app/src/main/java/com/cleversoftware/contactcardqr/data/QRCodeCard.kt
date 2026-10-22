@@ -1,5 +1,7 @@
 package com.cleversoftware.contactcardqr.data
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.util.UUID
 
 enum class QRType {
@@ -12,11 +14,14 @@ enum class QRType {
 	TEXT
 }
 
+@Entity(tableName = "qr_cards")
 data class QRCodeCard(
+	@PrimaryKey
 	val id: String = UUID.randomUUID().toString(),
 	val title: String,
 	val type: QRType,
-	val payload: String // Generated payload string passed to ZXing
+	val payload: String,
+	val createdAt: Long = System.currentTimeMillis()
 )
 
 fun formatWifiPayload(ssid: String, password: String, security: String = "WPA"): String {

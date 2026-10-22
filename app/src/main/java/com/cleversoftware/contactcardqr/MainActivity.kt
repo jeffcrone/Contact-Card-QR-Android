@@ -51,6 +51,7 @@ import kotlinx.coroutines.withContext
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.CircularProgressIndicator
+import com.cleversoftware.contactcardqr.data.AppDatabase
 import com.cleversoftware.contactcardqr.data.ContactProfile
 import com.cleversoftware.contactcardqr.data.ProfileRepository
 import com.cleversoftware.contactcardqr.ui.screens.ProfileScreen
@@ -85,6 +86,13 @@ fun MainAppContent() {
 		val context = LocalContext.current
 		val repository = remember { ProfileRepository(context) }
 		val coroutineScope = rememberCoroutineScope()
+
+		// Room Database setup
+		val db = remember { AppDatabase.getDatabase(context) }
+		val qrDao = db.qrCodeDao()
+
+		// Observe saved cards list automatically from Room
+		val savedCards by qrDao.getAllCards().collectAsState(initial = emptyList())
 
 		// Navigation Controller
 		val navController = rememberNavController()
@@ -282,8 +290,9 @@ fun MainAppContent() {
 						padding = innerPadding,
 						initialProfile = userProfile, // Pre-fills form with user's saved profile if available
 						onSaveCard = { newCard ->
-							// TODO: Save new card.
-
+							coroutineScope.launch {
+								qrDao.insertCard(newCard)
+							}
 							// Pop back to previous screen
 							navController.popBackStack()
 						}
