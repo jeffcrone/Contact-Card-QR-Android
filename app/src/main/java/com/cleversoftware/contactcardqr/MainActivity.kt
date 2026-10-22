@@ -65,6 +65,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
+import com.cleversoftware.contactcardqr.ui.screens.CreateContactScreen
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -277,9 +278,15 @@ fun MainAppContent() {
 				}
 
 				composable("create_contact") {
-					Text(
-						"Create Contact",
-						modifier = Modifier.padding(innerPadding)
+					CreateContactScreen(
+						padding = innerPadding,
+						initialProfile = userProfile, // Pre-fills form with user's saved profile if available
+						onSaveCard = { newCard ->
+							// TODO: Save new card.
+
+							// Pop back to previous screen
+							navController.popBackStack()
+						}
 					)
 				}
 
