@@ -80,6 +80,7 @@ fun MainCard( padding: PaddingValues, newQRContent: String ) {
 		}
 	}
 }
+
 @Preview(showBackground = true, name = "Main Card Light")
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Main Card Dark")
 @Composable

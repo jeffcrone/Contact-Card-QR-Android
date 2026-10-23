@@ -66,6 +66,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
+import com.cleversoftware.contactcardqr.data.QRCodeCard
+import com.cleversoftware.contactcardqr.ui.screens.CardListScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateContactScreen
 
 class MainActivity : ComponentActivity() {
@@ -252,10 +254,19 @@ fun MainAppContent() {
 				}
 
 				composable("saved") {
-					Text(
-						"Saved Screen",
-						modifier = Modifier.padding(innerPadding)
+					CardListScreen(
+						padding = innerPadding,
+						cards = savedCards,
+						onCardClick = { card ->
+							// TODO: Handle card tap (e.g. view full QR code)
+						},
+						onDeleteCard = { cardToDelete: QRCodeCard ->
+							coroutineScope.launch {
+								qrDao.deleteCard(cardToDelete)
+							}
+						}
 					)
+
 				}
 
 				composable("settings") {
