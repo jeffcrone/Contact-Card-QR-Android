@@ -56,7 +56,6 @@ fun CreateContactScreen(
 			value = firstName,
 			onValueChange = { firstName = it },
 			label = { Text("First Name") },
-			placeholder = { Text("e.g. John") },
 			modifier = Modifier.fillMaxWidth(),
 			singleLine = true
 		)
@@ -65,7 +64,6 @@ fun CreateContactScreen(
 			value = lastName,
 			onValueChange = { lastName = it },
 			label = { Text("Last Name") },
-			placeholder = { Text("e.g. Doe") },
 			modifier = Modifier.fillMaxWidth(),
 			singleLine = true
 		)
@@ -74,7 +72,6 @@ fun CreateContactScreen(
 			value = jobTitle,
 			onValueChange = { jobTitle = it },
 			label = { Text("Job Title") },
-			placeholder = { Text("e.g. Software Developer") },
 			modifier = Modifier.fillMaxWidth(),
 			singleLine = true
 		)
@@ -83,7 +80,6 @@ fun CreateContactScreen(
 			value = company,
 			onValueChange = { company = it },
 			label = { Text("Company") },
-			placeholder = { Text("e.g. Clever Software") },
 			modifier = Modifier.fillMaxWidth(),
 			singleLine = true
 		)
@@ -92,7 +88,6 @@ fun CreateContactScreen(
 			value = email,
 			onValueChange = { email = it },
 			label = { Text("Email Address") },
-			placeholder = { Text("john.doe@example.com") },
 			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
 			modifier = Modifier.fillMaxWidth(),
 			singleLine = true
@@ -102,7 +97,6 @@ fun CreateContactScreen(
 			value = phone,
 			onValueChange = { phone = it },
 			label = { Text("Phone Number") },
-			placeholder = { Text("(555) 000-0000") },
 			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
 			modifier = Modifier.fillMaxWidth(),
 			singleLine = true
@@ -112,7 +106,6 @@ fun CreateContactScreen(
 			value = website,
 			onValueChange = { website = it },
 			label = { Text("Website / Social Link") },
-			placeholder = { Text("https://example.com") },
 			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
 			modifier = Modifier.fillMaxWidth(),
 			singleLine = true
