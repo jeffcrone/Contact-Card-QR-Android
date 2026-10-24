@@ -31,6 +31,12 @@ import com.cleversoftware.contactcardqr.R
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.data.QRType
 import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 
 @Composable
@@ -40,6 +46,44 @@ fun CardListScreen(
 	onCardClick: (QRCodeCard) -> Unit = {},
 	onDeleteCard: (QRCodeCard) -> Unit = {}
 ) {
+	var cardToDelete by remember { mutableStateOf<QRCodeCard?>(null) }
+
+	// Material 3 Delete Card Confirmation Dialog
+	cardToDelete?.let { card ->
+		AlertDialog(
+			onDismissRequest = { cardToDelete = null },
+			icon = {
+				Icon(
+					painter = painterResource(R.drawable.ic_trash),
+					contentDescription = "Delete Icon",
+					tint = MaterialTheme.colorScheme.error
+				)
+			},
+			title = { Text(text = "Delete QR Code?") },
+			text = {
+				Text(text = "Are you sure you want to delete \"${card.title}\"? This action cannot be undone.")
+			},
+			confirmButton = {
+				TextButton(
+					onClick = {
+						onDeleteCard(card)
+						cardToDelete = null
+					}
+				) {
+					Text(
+						text = "Delete",
+						color = MaterialTheme.colorScheme.error
+					)
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { cardToDelete = null }) {
+					Text(text = "Cancel")
+				}
+			}
+		)
+	}
+
 	if (cards.isEmpty()) {
 		Box(
 			modifier = Modifier
@@ -67,7 +111,7 @@ fun CardListScreen(
 				InfoCard(
 					card = card,
 					onClick = { onCardClick(card) },
-					onDelete = { onDeleteCard(card) }
+					onDelete = { cardToDelete = card }
 				)
 			}
 		}
@@ -129,7 +173,6 @@ fun InfoCard(
 					contentDescription = "Delete Card",
 					tint = MaterialTheme.colorScheme.outline
 				)
-				// TODO Add confirmation dialog.
 			}
 		}
 	}
