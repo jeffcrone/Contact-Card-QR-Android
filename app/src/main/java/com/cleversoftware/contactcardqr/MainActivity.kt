@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.ui.screens.CardListScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateContactScreen
+import com.cleversoftware.contactcardqr.ui.screens.CreateEventScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateUrlScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateWifiScreen
 
@@ -337,9 +338,14 @@ fun MainAppContent() {
 				}
 
 				composable("create_event") {
-					Text(
-						"Create Event",
-						modifier = Modifier.padding(innerPadding)
+					CreateEventScreen(
+						padding = innerPadding,
+						onSaveCard = { newCard ->
+							coroutineScope.launch {
+								qrDao.insertCard(newCard)
+							}
+							navController.popBackStack()
+						}
 					)
 				}
 			}
