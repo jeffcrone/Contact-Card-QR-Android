@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.ui.screens.CardListScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateContactScreen
+import com.cleversoftware.contactcardqr.ui.screens.CreateUrlScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateWifiScreen
 
 class MainActivity : ComponentActivity() {
@@ -324,9 +325,14 @@ fun MainAppContent() {
 				}
 
 				composable("create_url") {
-					Text(
-						"Create URL",
-						modifier = Modifier.padding(innerPadding)
+					CreateUrlScreen(
+						padding = innerPadding,
+						onSaveCard = { newCard ->
+							coroutineScope.launch {
+								qrDao.insertCard(newCard)
+							}
+							navController.popBackStack()
+						}
 					)
 				}
 
