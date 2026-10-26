@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.ui.screens.CardListScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateContactScreen
+import com.cleversoftware.contactcardqr.ui.screens.CreateWifiScreen
 
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -299,7 +300,7 @@ fun MainAppContent() {
 				composable("create_contact") {
 					CreateContactScreen(
 						padding = innerPadding,
-						initialProfile = userProfile, // Pre-fills form with user's saved profile if available
+						// initialProfile = userProfile, // Pre-fills form with user's saved profile if available
 						onSaveCard = { newCard ->
 							coroutineScope.launch {
 								qrDao.insertCard(newCard)
@@ -311,9 +312,14 @@ fun MainAppContent() {
 				}
 
 				composable("create_wifi") {
-					Text(
-						"Create WiFi",
-						modifier = Modifier.padding(innerPadding)
+					CreateWifiScreen(
+						padding = innerPadding,
+						onSaveCard = { newCard ->
+							coroutineScope.launch {
+								qrDao.insertCard(newCard)
+							}
+							navController.popBackStack()
+						}
 					)
 				}
 
