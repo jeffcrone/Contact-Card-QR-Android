@@ -11,7 +11,8 @@ enum class QRType {
 	EVENT,
 	EMAIL,
 	PHONE,
-	TEXT
+	TEXT,
+	GPS
 }
 
 @Entity(tableName = "qr_cards")

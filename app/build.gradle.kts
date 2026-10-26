@@ -2,6 +2,7 @@ plugins {
 	alias(libs.plugins.android.application)
 	alias(libs.plugins.kotlin.compose)
 	alias(libs.plugins.ksp)
+	alias(libs.plugins.secrets)
 }
 
 android {
@@ -35,6 +36,7 @@ android {
 	}
 	buildFeatures {
 		compose = true
+		buildConfig = true
 	}
 }
 
@@ -68,4 +70,8 @@ dependencies {
 	implementation(libs.androidx.room.runtime)
 	implementation(libs.androidx.room.ktx)
 	ksp(libs.androidx.room.compiler)
+
+	// Google Maps
+	implementation(libs.maps.compose)
+	implementation(libs.play.services.maps)
 }

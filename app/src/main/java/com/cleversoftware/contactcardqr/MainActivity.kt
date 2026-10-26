@@ -70,6 +70,7 @@ import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.ui.screens.CardListScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateContactScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateEventScreen
+import com.cleversoftware.contactcardqr.ui.screens.CreateGPSScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateUrlScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateWifiScreen
 
@@ -236,6 +237,16 @@ fun MainAppContent() {
 								navController.navigate("create_event")
 							}
 						)
+
+						ListItem(
+							headlineContent = { Text("GPS Location") },
+							supportingContent = { Text("Share exact map coordinates or dropped pin") },
+							leadingContent = { Icon(painterResource(R.drawable.ic_qr_code), "GPS") },
+							modifier = Modifier.clickable {
+								showTypeSelector = false
+								navController.navigate("create_gps")
+							}
+						)
 					}
 				}
 			}
@@ -339,6 +350,18 @@ fun MainAppContent() {
 
 				composable("create_event") {
 					CreateEventScreen(
+						padding = innerPadding,
+						onSaveCard = { newCard ->
+							coroutineScope.launch {
+								qrDao.insertCard(newCard)
+							}
+							navController.popBackStack()
+						}
+					)
+				}
+
+				composable("create_gps") {
+					CreateGPSScreen(
 						padding = innerPadding,
 						onSaveCard = { newCard ->
 							coroutineScope.launch {
