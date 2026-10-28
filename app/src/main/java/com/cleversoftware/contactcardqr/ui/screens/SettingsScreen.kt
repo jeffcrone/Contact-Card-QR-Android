@@ -1,5 +1,6 @@
 package com.cleversoftware.contactcardqr.ui.screens
 
+import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,18 +13,21 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
-import android.content.res.Configuration
+import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.R
+import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
 
 @Composable
-fun SettingsScreen(padding: PaddingValues, onNavigateToProfile: () -> Unit = {}) {
+fun SettingsScreen(
+	padding: PaddingValues,
+	onNavigateToProfile: () -> Unit = {},
+	onNavigateToAppSettings: () -> Unit = {}
+) {
 	val context = LocalContext.current
 	val versionName = remember(context) {
 		try {
@@ -67,16 +71,16 @@ fun SettingsScreen(padding: PaddingValues, onNavigateToProfile: () -> Unit = {})
 
 		item {
 			ListItem(
-				headlineContent = { Text("QR Code Design") },
-				supportingContent = { Text("Customize colors and style of your QR code") },
+				headlineContent = { Text("App Settings") },
+				supportingContent = { Text("Customize app behavior and preferences") },
 				leadingContent = {
 					Icon(
-						painter = painterResource(R.drawable.ic_qr_code),
-						contentDescription = "QR Design"
+						painter = painterResource(R.drawable.ic_more_horiz),
+						contentDescription = "App Settings"
 					)
 				},
 				modifier = Modifier.clickable {
-					// Handle click
+					onNavigateToAppSettings()
 				}
 			)
 			HorizontalDivider()

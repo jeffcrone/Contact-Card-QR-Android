@@ -54,6 +54,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import com.cleversoftware.contactcardqr.data.AppDatabase
 import com.cleversoftware.contactcardqr.data.ContactProfile
 import com.cleversoftware.contactcardqr.data.ProfileRepository
+import com.cleversoftware.contactcardqr.data.SettingsRepository
+import com.cleversoftware.contactcardqr.ui.screens.AppSettingsScreen
 import com.cleversoftware.contactcardqr.ui.screens.ProfileScreen
 import com.cleversoftware.contactcardqr.ui.screens.SettingsScreen
 import com.cleversoftware.contactcardqr.ui.screens.MainCard
@@ -91,6 +93,7 @@ fun MainAppContent() {
 		// ProfileRepository setup
 		val context = LocalContext.current
 		val repository = remember { ProfileRepository(context) }
+		val settingsRepository = remember { SettingsRepository(context) }
 		val coroutineScope = rememberCoroutineScope()
 
 		// Room Database setup
@@ -99,6 +102,9 @@ fun MainAppContent() {
 
 		// Observe saved cards list automatically from Room
 		val savedCards by qrDao.getAllCards().collectAsState(initial = emptyList())
+
+		// Observe app settings
+		val showSavedQrCodes by settingsRepository.showSavedQrCodesFlow.collectAsState(initial = true)
 
 		// Navigation Controller
 		val navController = rememberNavController()
@@ -156,10 +162,10 @@ fun MainAppContent() {
 						icon = {
 							Icon(
 								painter = painterResource(R.drawable.ic_bookmark),
-								contentDescription = "Saved"
+								contentDescription = "Saved Items"
 							)
 						},
-						label = { Text("Saved") }
+						label = { Text("Saved Items") }
 					)
 					NavigationBarItem(
 						selected = currentRoute == "settings" || currentRoute == "profile",
@@ -271,8 +277,9 @@ fun MainAppContent() {
 					CardListScreen(
 						padding = innerPadding,
 						cards = savedCards,
+						showQrCodes = showSavedQrCodes,
 						onCardClick = { card ->
-							// TODO: Handle card tap (e.g. view full QR code)
+							// Handle card tap
 						},
 						onDeleteCard = { cardToDelete: QRCodeCard ->
 							coroutineScope.launch {
@@ -280,15 +287,28 @@ fun MainAppContent() {
 							}
 						}
 					)
-
 				}
 
 				composable("settings") {
-					// Passing padding and navigation callback here:
 					SettingsScreen(
 						padding = innerPadding,
 						onNavigateToProfile = {
-							navController.navigate("profile") // Triggers navigation to profile.
+							navController.navigate("profile")
+						},
+						onNavigateToAppSettings = {
+							navController.navigate("app_settings")
+						}
+					)
+				}
+
+				composable("app_settings") {
+					AppSettingsScreen(
+						padding = innerPadding,
+						showSavedQrCodes = showSavedQrCodes,
+						onToggleShowSavedQrCodes = { newValue ->
+							coroutineScope.launch {
+								settingsRepository.setShowSavedQrCodes(newValue)
+							}
 						}
 					)
 				}
