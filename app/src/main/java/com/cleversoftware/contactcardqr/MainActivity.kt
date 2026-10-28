@@ -69,6 +69,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.data.QRCodeCard
+import com.cleversoftware.contactcardqr.ui.screens.CardDetailScreen
 import com.cleversoftware.contactcardqr.ui.screens.CardListScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateContactScreen
 import com.cleversoftware.contactcardqr.ui.screens.CreateEventScreen
@@ -279,13 +280,22 @@ fun MainAppContent() {
 						cards = savedCards,
 						showQrCodes = showSavedQrCodes,
 						onCardClick = { card ->
-							// Handle card tap
+							navController.navigate("card_detail/${card.id}")
 						},
 						onDeleteCard = { cardToDelete: QRCodeCard ->
 							coroutineScope.launch {
 								qrDao.deleteCard(cardToDelete)
 							}
 						}
+					)
+				}
+
+				composable("card_detail/{cardId}") { backStackEntry ->
+					val cardId = backStackEntry.arguments?.getString("cardId")
+					val selectedCard = savedCards.find { it.id == cardId }
+					CardDetailScreen(
+						padding = innerPadding,
+						card = selectedCard
 					)
 				}
 
