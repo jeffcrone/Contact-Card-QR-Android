@@ -1,5 +1,6 @@
 package com.cleversoftware.contactcardqr.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,18 +28,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.cleversoftware.contactcardqr.BuildConfig
+import androidx.compose.ui.viewinterop.AndroidView
 import com.cleversoftware.contactcardqr.data.GPSValues
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.data.QRType
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapEventsReceiver
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.MapEventsOverlay
+import org.osmdroid.views.overlay.Marker
 
 @Composable
 fun CreateGPSScreen(
@@ -46,33 +49,13 @@ fun CreateGPSScreen(
 	initialValues: GPSValues = GPSValues(),
 	onSaveCard: (QRCodeCard) -> Unit = {}
 ) {
+	val context = LocalContext.current
+
 	var title by remember { mutableStateOf(initialValues.title) }
-	var latText by remember { mutableStateOf(if (initialValues.latitude != 0.0) initialValues.latitude.toString() else "") }
-	var lngText by remember { mutableStateOf(if (initialValues.longitude != 0.0) initialValues.longitude.toString() else "") }
+	var latText by remember { mutableStateOf(if (initialValues.latitude != 0.0) initialValues.latitude.toString() else "40.712800") }
+	var lngText by remember { mutableStateOf(if (initialValues.longitude != 0.0) initialValues.longitude.toString() else "-74.006000") }
 
 	var inputMode by remember { mutableStateOf(0) } // 0 = Manual, 1 = Pick on Map
-
-	var selectedLatLng by remember {
-		mutableStateOf(
-			if (initialValues.latitude != 0.0 || initialValues.longitude != 0.0) {
-				LatLng(initialValues.latitude, initialValues.longitude)
-			} else {
-				LatLng(40.7128, -74.0060) // Default New York
-			}
-		)
-	}
-
-	val cameraPositionState = rememberCameraPositionState {
-		position = CameraPosition.fromLatLngZoom(selectedLatLng, 12f)
-	}
-
-	// Check if API key is not configured yet
-	val isApiKeyMissing = try {
-		val key = BuildConfig.MAPS_API_KEY
-		key.isBlank() || key.contains("YOUR_KEY_HERE") || key == "DEFAULT_KEY"
-	} catch (e: Exception) {
-		false
-	}
 
 	Column(
 		modifier = Modifier
@@ -141,58 +124,41 @@ fun CreateGPSScreen(
 				)
 			}
 		} else {
-			// Google Maps Mode
-			if (isApiKeyMissing) {
-				Card(
-					colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-					modifier = Modifier.fillMaxWidth()
-				) {
-					Column(modifier = Modifier.padding(12.dp)) {
-						Text(
-							text = "Google Maps API Key Not Set",
-							style = MaterialTheme.typography.titleSmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant
-						)
-						Text(
-							text = "To enable interactive Google Maps, add your MAPS_API_KEY in local.properties. You can still enter latitude and longitude manually above.",
-							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
-							modifier = Modifier.padding(top = 4.dp)
-						)
-					}
-				}
-			}
-
-			Box(
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(280.dp)
-			) {
-				GoogleMap(
-					modifier = Modifier.fillMaxSize(),
-					cameraPositionState = cameraPositionState,
-					onMapClick = { latLng ->
-						selectedLatLng = latLng
-						latText = String.format("%.6f", latLng.latitude)
-						lngText = String.format("%.6f", latLng.longitude)
-					}
-				) {
-					Marker(
-						state = MarkerState(position = selectedLatLng),
-						title = title.ifBlank { "Selected Pin" },
-						snippet = "Lat: ${selectedLatLng.latitude}, Lng: ${selectedLatLng.longitude}"
-					)
-				}
-			}
-
+			// OpenStreetMap Mode
 			Text(
-				text = "Tap anywhere on the map to set coordinates.",
+				text = "Tap anywhere on the map to drop a pin:",
 				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant
+				color = MaterialTheme.colorScheme.onSurfaceVariant,
+				modifier = Modifier.padding(bottom = 4.dp)
 			)
 
+			Card(
+				elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(260.dp)
+			) {
+				val initialLat = latText.toDoubleOrNull() ?: 40.7128
+				val initialLng = lngText.toDoubleOrNull() ?: -74.0060
+
+				OsmMapView(
+					context = context,
+					latitude = initialLat,
+					longitude = initialLng,
+					markerTitle = title.ifBlank { "Selected Location" },
+					onLocationPicked = { lat, lng ->
+						latText = String.format("%.6f", lat)
+						lngText = String.format("%.6f", lng)
+					},
+					modifier = Modifier.fillMaxSize()
+				)
+			}
+
+			// Coordinates displayed cleanly BELOW the map
 			Row(
-				modifier = Modifier.fillMaxWidth(),
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 8.dp),
 				horizontalArrangement = Arrangement.spacedBy(8.dp)
 			) {
 				OutlinedTextField(
@@ -240,4 +206,63 @@ fun CreateGPSScreen(
 			Text("Generate GPS QR Code")
 		}
 	}
+}
+
+@Composable
+private fun OsmMapView(
+	context: Context,
+	latitude: Double,
+	longitude: Double,
+	markerTitle: String,
+	onLocationPicked: (Double, Double) -> Unit,
+	modifier: Modifier = Modifier
+) {
+	// Initialize osmdroid user agent configuration once
+	remember {
+		Configuration.getInstance().userAgentValue = context.packageName
+		true
+	}
+
+	AndroidView(
+		modifier = modifier,
+		factory = { ctx ->
+			MapView(ctx).apply {
+				setTileSource(TileSourceFactory.MAPNIK)
+				setMultiTouchControls(true)
+
+				val startPoint = GeoPoint(latitude, longitude)
+				controller.setZoom(18.5)
+				controller.setCenter(startPoint)
+
+				val marker = Marker(this).apply {
+					position = startPoint
+					setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+					title = markerTitle
+				}
+				overlays.add(marker)
+
+				val eventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
+					override fun singleTapConfirmedHelper(p: GeoPoint): Boolean {
+						marker.position = p
+						marker.title = markerTitle
+						invalidate()
+						onLocationPicked(p.latitude, p.longitude)
+						return true
+					}
+
+					override fun longPressHelper(p: GeoPoint): Boolean = false
+				})
+				overlays.add(0, eventsOverlay)
+			}
+		},
+		update = { mapView ->
+			val targetPoint = GeoPoint(latitude, longitude)
+			val existingMarker = mapView.overlays.filterIsInstance<Marker>().firstOrNull()
+			if (existingMarker != null && (existingMarker.position.latitude != latitude || existingMarker.position.longitude != longitude)) {
+				existingMarker.position = targetPoint
+				existingMarker.title = markerTitle
+				mapView.invalidate()
+			}
+		}
+	)
 }

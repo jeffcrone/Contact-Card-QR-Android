@@ -66,7 +66,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.ui.screens.CardDetailScreen
@@ -198,7 +201,13 @@ fun MainAppContent() {
 			// Shows sheet when showTypeSelector is true
 			if (showTypeSelector) {
 				ModalBottomSheet(onDismissRequest = { showTypeSelector = false }) {
-					Column(modifier = Modifier.padding(16.dp)) {
+					Column(
+						modifier = Modifier
+							.padding(16.dp)
+							.navigationBarsPadding()
+							.padding(bottom = 24.dp)
+							.verticalScroll(rememberScrollState())
+					) {
 						Text(
 							text = "Create New QR Code",
 							style = MaterialTheme.typography.titleLarge,
