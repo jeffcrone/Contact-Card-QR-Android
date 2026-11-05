@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -42,6 +43,8 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
 @Composable
 fun CreateGPSScreen(
@@ -56,6 +59,24 @@ fun CreateGPSScreen(
 	var lngText by remember { mutableStateOf(if (initialValues.longitude != 0.0) initialValues.longitude.toString() else "-74.006000") }
 
 	var inputMode by remember { mutableStateOf(0) } // 0 = Manual, 1 = Pick on Map
+	var showFullScreenMap by remember { mutableStateOf(false) }
+
+	val currentLat = latText.toDoubleOrNull() ?: 40.7128
+	val currentLng = lngText.toDoubleOrNull() ?: -74.0060
+
+	if (showFullScreenMap) {
+		FullScreenMapPicker(
+			initialLat = currentLat,
+			initialLng = currentLng,
+			onConfirmLocation = { lat, lng ->
+				latText = String.format("%.6f", lat)
+				lngText = String.format("%.6f", lng)
+				showFullScreenMap = false
+			},
+			onDismiss = { showFullScreenMap = false }
+		)
+		return
+	}
 
 	Column(
 		modifier = Modifier
@@ -90,7 +111,10 @@ fun CreateGPSScreen(
 			}
 			SegmentedButton(
 				selected = inputMode == 1,
-				onClick = { inputMode = 1 },
+				onClick = {
+					inputMode = 1
+					showFullScreenMap = true
+				},
 				shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
 			) {
 				Text("Pick on Map")
@@ -126,25 +150,28 @@ fun CreateGPSScreen(
 		} else {
 			// OpenStreetMap Mode
 			Text(
-				text = "Tap anywhere on the map to drop a pin:",
+				text = "Tap on the map or launch full-screen map picker:",
 				style = MaterialTheme.typography.bodySmall,
-				color = MaterialTheme.colorScheme.onSurfaceVariant,
-				modifier = Modifier.padding(bottom = 4.dp)
+				color = MaterialTheme.colorScheme.onSurfaceVariant
 			)
+
+			OutlinedButton(
+				onClick = { showFullScreenMap = true },
+				modifier = Modifier.fillMaxWidth()
+			) {
+				Text("Open Full-Screen Map Picker & Search")
+			}
 
 			Card(
 				elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
 				modifier = Modifier
 					.fillMaxWidth()
-					.height(260.dp)
+					.height(240.dp)
 			) {
-				val initialLat = latText.toDoubleOrNull() ?: 40.7128
-				val initialLng = lngText.toDoubleOrNull() ?: -74.0060
-
 				OsmMapView(
 					context = context,
-					latitude = initialLat,
-					longitude = initialLng,
+					latitude = currentLat,
+					longitude = currentLng,
 					markerTitle = title.ifBlank { "Selected Location" },
 					onLocationPicked = { lat, lng ->
 						latText = String.format("%.6f", lat)
@@ -217,7 +244,6 @@ private fun OsmMapView(
 	onLocationPicked: (Double, Double) -> Unit,
 	modifier: Modifier = Modifier
 ) {
-	// Initialize osmdroid user agent configuration once
 	remember {
 		Configuration.getInstance().userAgentValue = context.packageName
 		true
@@ -231,8 +257,13 @@ private fun OsmMapView(
 				setMultiTouchControls(true)
 
 				val startPoint = GeoPoint(latitude, longitude)
-				controller.setZoom(18.5)
+				controller.setZoom(17.0)
 				controller.setCenter(startPoint)
+
+				// Auto GPS Location Overlay
+				val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
+				locationOverlay.enableMyLocation()
+				overlays.add(locationOverlay)
 
 				val marker = Marker(this).apply {
 					position = startPoint
