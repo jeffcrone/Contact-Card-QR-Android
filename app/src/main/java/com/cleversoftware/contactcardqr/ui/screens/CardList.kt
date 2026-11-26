@@ -26,6 +26,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.R
+import com.cleversoftware.contactcardqr.data.CardDisplayMode
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.data.QRType
 import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
@@ -70,6 +74,7 @@ fun CardListScreen(
 	cards: List<QRCodeCard>,
 	showQrCodes: Boolean = true,
 	onCardClick: (QRCodeCard) -> Unit = {},
+	onUpdateCard: (QRCodeCard) -> Unit = {},
 	onDeleteCard: (QRCodeCard) -> Unit = {}
 ) {
 	var cardToDelete by remember { mutableStateOf<QRCodeCard?>(null) }
@@ -146,6 +151,7 @@ fun CardListScreen(
 						card = card,
 						showQrCode = showQrCodes,
 						onClick = { onCardClick(card) },
+						onModeChange = { newMode -> onUpdateCard(card.copy(displayMode = newMode)) },
 						onDelete = { cardToDelete = card }
 					)
 				}
@@ -159,6 +165,7 @@ fun InfoCard(
 	card: QRCodeCard,
 	showQrCode: Boolean = true,
 	onClick: () -> Unit = {},
+	onModeChange: (CardDisplayMode) -> Unit = {},
 	onDelete: () -> Unit = {}
 ) {
 	val iconRes = when (card.type) {
@@ -169,10 +176,13 @@ fun InfoCard(
 		else -> R.drawable.ic_qr_code
 	}
 
-	// Lazy load QR Code bitmap asynchronously on Dispatchers.IO with LRU memory caching
-	var qrBitmap by remember(card.id, card.payload, showQrCode) { mutableStateOf<Bitmap?>(null) }
+	val shouldShowQr = showQrCode && card.displayMode != CardDisplayMode.TEXT_ONLY && card.payload.isNotBlank()
+	val shouldShowText = card.displayMode != CardDisplayMode.QR_ONLY
 
-	if (showQrCode && card.payload.isNotBlank()) {
+	// Lazy load QR Code bitmap asynchronously on Dispatchers.IO with LRU memory caching
+	var qrBitmap by remember(card.id, card.payload, shouldShowQr) { mutableStateOf<Bitmap?>(null) }
+
+	if (shouldShowQr) {
 		LaunchedEffect(card.id, card.payload) {
 			val cached = QrBitmapCache.get(card.id)
 			if (cached != null) {
@@ -202,7 +212,12 @@ fun InfoCard(
 		elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
 	) {
-		Column(modifier = Modifier.padding(16.dp)) {
+		Column(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(16.dp),
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
 			Row(
 				modifier = Modifier.fillMaxWidth(),
 				verticalAlignment = Alignment.CenterVertically
@@ -211,20 +226,27 @@ fun InfoCard(
 					painter = painterResource(iconRes),
 					contentDescription = card.type.name,
 					tint = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.padding(end = 16.dp)
+					modifier = Modifier.padding(end = 12.dp)
 				)
 
-				Column(modifier = Modifier.weight(1f)) {
+				Column(
+					modifier = Modifier.weight(1f),
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
 					Text(
 						text = card.title,
-						style = MaterialTheme.typography.titleMedium
+						style = MaterialTheme.typography.titleMedium,
+						textAlign = TextAlign.Center
 					)
-					Spacer(modifier = Modifier.height(4.dp))
-					Text(
-						text = card.type.name,
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant
-					)
+					if (shouldShowText) {
+						Spacer(modifier = Modifier.height(2.dp))
+						Text(
+							text = card.type.name,
+							style = MaterialTheme.typography.bodyMedium,
+							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							textAlign = TextAlign.Center
+						)
+					}
 				}
 
 				IconButton(onClick = onDelete) {
@@ -236,8 +258,31 @@ fun InfoCard(
 				}
 			}
 
-			// Render QR Code Image if Setting is ON
-			if (showQrCode && card.payload.isNotBlank()) {
+			// Quick Mode Switcher on the Card
+			val modes = listOf(
+				CardDisplayMode.QR_AND_TEXT to "Both",
+				CardDisplayMode.QR_ONLY to "QR Only",
+				CardDisplayMode.TEXT_ONLY to "Text Only"
+			)
+
+			SingleChoiceSegmentedButtonRow(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 10.dp)
+			) {
+				modes.forEachIndexed { index, (mode, label) ->
+					SegmentedButton(
+						selected = card.displayMode == mode,
+						onClick = { onModeChange(mode) },
+						shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size)
+					) {
+						Text(label, style = MaterialTheme.typography.labelSmall)
+					}
+				}
+			}
+
+			// Render QR Code Image if setting & card mode permit
+			if (shouldShowQr) {
 				Spacer(modifier = Modifier.height(12.dp))
 				Box(
 					modifier = Modifier

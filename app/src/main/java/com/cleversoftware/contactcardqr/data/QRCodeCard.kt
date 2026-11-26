@@ -15,6 +15,12 @@ enum class QRType {
 	GPS
 }
 
+enum class CardDisplayMode {
+	QR_AND_TEXT,
+	QR_ONLY,
+	TEXT_ONLY
+}
+
 @Entity(tableName = "qr_cards")
 data class QRCodeCard(
 	@PrimaryKey
@@ -22,6 +28,7 @@ data class QRCodeCard(
 	val title: String,
 	val type: QRType,
 	val payload: String,
+	val displayMode: CardDisplayMode = CardDisplayMode.QR_AND_TEXT,
 	val createdAt: Long = System.currentTimeMillis()
 )
 

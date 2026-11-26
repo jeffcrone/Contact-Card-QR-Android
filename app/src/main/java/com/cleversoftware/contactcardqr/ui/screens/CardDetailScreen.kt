@@ -23,6 +23,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,9 +35,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cleversoftware.contactcardqr.R
+import com.cleversoftware.contactcardqr.data.CardDisplayMode
 import com.cleversoftware.contactcardqr.data.QRCodeCard
 import com.cleversoftware.contactcardqr.data.QRType
 import com.cleversoftware.contactcardqr.ui.theme.ContactCardQRTheme
@@ -46,7 +51,8 @@ import kotlinx.coroutines.withContext
 @Composable
 fun CardDetailScreen(
 	padding: PaddingValues,
-	card: QRCodeCard?
+	card: QRCodeCard?,
+	onUpdateCard: (QRCodeCard) -> Unit = {}
 ) {
 	if (card == null) {
 		Box(
@@ -99,91 +105,142 @@ fun CardDetailScreen(
 			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
 			modifier = Modifier.fillMaxWidth()
 		) {
-			Row(
-				modifier = Modifier.padding(16.dp),
-				verticalAlignment = Alignment.CenterVertically
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(16.dp),
+				horizontalAlignment = Alignment.CenterHorizontally
 			) {
 				Icon(
 					painter = painterResource(iconRes),
 					contentDescription = card.type.name,
 					tint = MaterialTheme.colorScheme.primary,
-					modifier = Modifier
-						.size(36.dp)
-						.padding(end = 12.dp)
+					modifier = Modifier.size(36.dp)
 				)
-				Column {
-					Text(
-						text = card.title,
-						style = MaterialTheme.typography.headlineSmall,
-						fontWeight = FontWeight.Bold
-					)
-					Text(
-						text = "${card.type.name} QR Code",
-						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurfaceVariant
-					)
-				}
-			}
-		}
-
-		// Large QR Code Container
-		Card(
-			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-			elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-			modifier = Modifier.fillMaxWidth()
-		) {
-			Box(
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(280.dp)
-					.padding(24.dp),
-				contentAlignment = Alignment.Center
-			) {
-				if (qrBitmap != null) {
-					Image(
-						bitmap = qrBitmap!!.asImageBitmap(),
-						contentDescription = "QR Code for ${card.title}",
-						modifier = Modifier.fillMaxSize()
-					)
-				} else {
-					CircularProgressIndicator()
-				}
-			}
-		}
-
-		// Details Section Card
-		Card(
-			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-			elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-			modifier = Modifier.fillMaxWidth()
-		) {
-			Column(modifier = Modifier.padding(16.dp)) {
-				Text(
-					text = "Card Details",
-					style = MaterialTheme.typography.titleMedium,
-					fontWeight = FontWeight.SemiBold,
-					color = MaterialTheme.colorScheme.primary
-				)
-
 				Spacer(modifier = Modifier.height(8.dp))
-				HorizontalDivider()
-				Spacer(modifier = Modifier.height(12.dp))
+				Text(
+					text = card.title,
+					style = MaterialTheme.typography.headlineSmall,
+					fontWeight = FontWeight.Bold,
+					textAlign = TextAlign.Center
+				)
+				Text(
+					text = "${card.type.name} Card",
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					textAlign = TextAlign.Center
+				)
+			}
+		}
 
-				// Format and render payload content line-by-line
-				val formattedDetails = formatPayloadDetails(card)
-				formattedDetails.forEach { (label, value) ->
-					if (value.isNotBlank()) {
-						Column(modifier = Modifier.padding(bottom = 12.dp)) {
-							Text(
-								text = label,
-								style = MaterialTheme.typography.labelMedium,
-								color = MaterialTheme.colorScheme.onSurfaceVariant
-							)
-							Text(
-								text = value,
-								style = MaterialTheme.typography.bodyLarge,
-								modifier = Modifier.padding(top = 2.dp)
-							)
+		// Display Mode Selector for this specific card
+		Card(
+			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+			modifier = Modifier.fillMaxWidth()
+		) {
+			Column(
+				modifier = Modifier.padding(16.dp),
+				horizontalAlignment = Alignment.CenterHorizontally
+			) {
+				Text(
+					text = "Card Layout Option",
+					style = MaterialTheme.typography.titleSmall,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					modifier = Modifier.padding(bottom = 8.dp)
+				)
+
+				val modes = listOf(
+					CardDisplayMode.QR_AND_TEXT to "Both",
+					CardDisplayMode.QR_ONLY to "QR Only",
+					CardDisplayMode.TEXT_ONLY to "Text Only"
+				)
+
+				SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+					modes.forEachIndexed { index, (mode, label) ->
+						SegmentedButton(
+							selected = card.displayMode == mode,
+							onClick = { onUpdateCard(card.copy(displayMode = mode)) },
+							shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size)
+						) {
+							Text(label)
+						}
+					}
+				}
+			}
+		}
+
+		// Show Large QR Code if mode is QR_AND_TEXT or QR_ONLY
+		if (card.displayMode != CardDisplayMode.TEXT_ONLY) {
+			Card(
+				colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+				elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+				modifier = Modifier.fillMaxWidth()
+			) {
+				Box(
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(280.dp)
+						.padding(24.dp),
+					contentAlignment = Alignment.Center
+				) {
+					if (qrBitmap != null) {
+						Image(
+							bitmap = qrBitmap!!.asImageBitmap(),
+							contentDescription = "QR Code for ${card.title}",
+							modifier = Modifier.fillMaxSize()
+						)
+					} else {
+						CircularProgressIndicator()
+					}
+				}
+			}
+		}
+
+		// Show Text Details if mode is QR_AND_TEXT or TEXT_ONLY
+		if (card.displayMode != CardDisplayMode.QR_ONLY) {
+			Card(
+				colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+				elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+				modifier = Modifier.fillMaxWidth()
+			) {
+				Column(
+					modifier = Modifier.padding(16.dp),
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
+					Text(
+						text = "Information Details",
+						style = MaterialTheme.typography.titleMedium,
+						fontWeight = FontWeight.SemiBold,
+						color = MaterialTheme.colorScheme.primary,
+						textAlign = TextAlign.Center
+					)
+
+					Spacer(modifier = Modifier.height(8.dp))
+					HorizontalDivider()
+					Spacer(modifier = Modifier.height(12.dp))
+
+					val formattedDetails = formatPayloadDetails(card)
+					formattedDetails.forEach { (label, value) ->
+						if (value.isNotBlank()) {
+							Column(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(bottom = 12.dp),
+								horizontalAlignment = Alignment.CenterHorizontally
+							) {
+								Text(
+									text = label,
+									style = MaterialTheme.typography.labelMedium,
+									color = MaterialTheme.colorScheme.onSurfaceVariant,
+									textAlign = TextAlign.Center
+								)
+								Text(
+									text = value,
+									style = MaterialTheme.typography.bodyLarge,
+									textAlign = TextAlign.Center,
+									modifier = Modifier.padding(top = 2.dp)
+								)
+							}
 						}
 					}
 				}
@@ -198,7 +255,6 @@ private fun formatPayloadDetails(card: QRCodeCard): List<Pair<String, String>> {
 
 	when (card.type) {
 		QRType.WIFI -> {
-			// WIFI:S:MyRouter;T:WPA;P:SecretPass;;
 			val payload = card.payload
 			val ssid = payload.substringAfter("S:", "").substringBefore(";").trim()
 			val security = payload.substringAfter("T:", "").substringBefore(";").trim()
@@ -241,7 +297,6 @@ private fun formatPayloadDetails(card: QRCodeCard): List<Pair<String, String>> {
 		}
 
 		QRType.GPS -> {
-			// geo:40.7128,-74.0060?q=40.7128,-74.0060(Title)
 			val payload = card.payload
 			val coords = payload.removePrefix("geo:").substringBefore("?")
 			val parts = coords.split(",")
@@ -272,7 +327,8 @@ fun CardDetailScreenPreview() {
 		val sampleCard = QRCodeCard(
 			title = "Home Wi-Fi Network",
 			type = QRType.WIFI,
-			payload = "WIFI:S:MyRouter;T:WPA;P:MySecretPassword;;"
+			payload = "WIFI:S:MyRouter;T:WPA;P:MySecretPassword;;",
+			displayMode = CardDisplayMode.QR_AND_TEXT
 		)
 		CardDetailScreen(
 			padding = PaddingValues(0.dp),

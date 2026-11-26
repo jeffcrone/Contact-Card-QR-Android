@@ -52,6 +52,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.CircularProgressIndicator
 import com.cleversoftware.contactcardqr.data.AppDatabase
+import com.cleversoftware.contactcardqr.data.CardDisplayMode
 import com.cleversoftware.contactcardqr.data.ContactProfile
 import com.cleversoftware.contactcardqr.data.ProfileRepository
 import com.cleversoftware.contactcardqr.data.SettingsRepository
@@ -109,6 +110,7 @@ fun MainAppContent() {
 
 		// Observe app settings
 		val showSavedQrCodes by settingsRepository.showSavedQrCodesFlow.collectAsState(initial = true)
+		val defaultDisplayMode by settingsRepository.defaultDisplayModeFlow.collectAsState(initial = CardDisplayMode.QR_AND_TEXT)
 
 		// Navigation Controller
 		val navController = rememberNavController()
@@ -273,7 +275,11 @@ fun MainAppContent() {
 				startDestination = "card"
 			) {
 				composable("card") {
-					MainCard(padding = innerPadding, newQRContent = userProfile.toVCardString())
+					MainCard(
+						padding = innerPadding,
+						newQRContent = userProfile.toVCardString(),
+						displayMode = defaultDisplayMode
+					)
 				}
 
 				composable("scan") {
@@ -291,6 +297,11 @@ fun MainAppContent() {
 						onCardClick = { card ->
 							navController.navigate("card_detail/${card.id}")
 						},
+						onUpdateCard = { updatedCard ->
+							coroutineScope.launch {
+								qrDao.insertCard(updatedCard)
+							}
+						},
 						onDeleteCard = { cardToDelete: QRCodeCard ->
 							coroutineScope.launch {
 								qrDao.deleteCard(cardToDelete)
@@ -304,7 +315,12 @@ fun MainAppContent() {
 					val selectedCard = savedCards.find { it.id == cardId }
 					CardDetailScreen(
 						padding = innerPadding,
-						card = selectedCard
+						card = selectedCard,
+						onUpdateCard = { updatedCard ->
+							coroutineScope.launch {
+								qrDao.insertCard(updatedCard)
+							}
+						}
 					)
 				}
 
@@ -327,6 +343,12 @@ fun MainAppContent() {
 						onToggleShowSavedQrCodes = { newValue ->
 							coroutineScope.launch {
 								settingsRepository.setShowSavedQrCodes(newValue)
+							}
+						},
+						defaultDisplayMode = defaultDisplayMode,
+						onSelectDefaultDisplayMode = { newMode ->
+							coroutineScope.launch {
+								settingsRepository.setDefaultDisplayMode(newMode)
 							}
 						}
 					)
@@ -352,12 +374,10 @@ fun MainAppContent() {
 				composable("create_contact") {
 					CreateContactScreen(
 						padding = innerPadding,
-						// initialProfile = userProfile, // Pre-fills form with user's saved profile if available
 						onSaveCard = { newCard ->
 							coroutineScope.launch {
-								qrDao.insertCard(newCard)
+								qrDao.insertCard(newCard.copy(displayMode = defaultDisplayMode))
 							}
-							// Pop back to previous screen
 							navController.popBackStack()
 						}
 					)
@@ -368,7 +388,7 @@ fun MainAppContent() {
 						padding = innerPadding,
 						onSaveCard = { newCard ->
 							coroutineScope.launch {
-								qrDao.insertCard(newCard)
+								qrDao.insertCard(newCard.copy(displayMode = defaultDisplayMode))
 							}
 							navController.popBackStack()
 						}
@@ -380,7 +400,7 @@ fun MainAppContent() {
 						padding = innerPadding,
 						onSaveCard = { newCard ->
 							coroutineScope.launch {
-								qrDao.insertCard(newCard)
+								qrDao.insertCard(newCard.copy(displayMode = defaultDisplayMode))
 							}
 							navController.popBackStack()
 						}
@@ -392,7 +412,7 @@ fun MainAppContent() {
 						padding = innerPadding,
 						onSaveCard = { newCard ->
 							coroutineScope.launch {
-								qrDao.insertCard(newCard)
+								qrDao.insertCard(newCard.copy(displayMode = defaultDisplayMode))
 							}
 							navController.popBackStack()
 						}
@@ -404,7 +424,7 @@ fun MainAppContent() {
 						padding = innerPadding,
 						onSaveCard = { newCard ->
 							coroutineScope.launch {
-								qrDao.insertCard(newCard)
+								qrDao.insertCard(newCard.copy(displayMode = defaultDisplayMode))
 							}
 							navController.popBackStack()
 						}
